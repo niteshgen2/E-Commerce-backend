@@ -59,7 +59,7 @@ class OrderController extends Controller
         // Return a success response
         return response()->json([
             'message' => 'Order placed successfully',
-            // 'order' => $order // Make sure $order is a valid object
+             'order' => $order // Make sure $order is a valid object
         ], 201);
         
     }

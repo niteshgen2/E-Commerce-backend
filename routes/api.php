@@ -10,6 +10,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\ProductFilterController;
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
@@ -20,4 +21,11 @@ Route::post('/orders', [OrderController::class, 'placeOrder']);
 Route::post('products', [ProductController::class, 'create']);
 Route::post('payments', [PaymentController::class, 'processPayment']);
 
+});
+Route::middleware('auth:api')->group(function () {
+    Route::get('/filters', [ProductFilterController::class, 'index']);
+    Route::post('/filters', [ProductFilterController::class, 'store']);
+    Route::get('/filters/{id}', [ProductFilterController::class, 'show']);
+    Route::put('/filters/{id}', [ProductFilterController::class, 'update']);
+    Route::delete('/filters/{id}', [ProductFilterController::class, 'destroy']);
 });

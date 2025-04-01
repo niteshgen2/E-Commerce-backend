@@ -9,6 +9,10 @@ use Illuminate\Support\Facades\Auth;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Support\Facades\Password;
 
+use App\Models\ProductFilter;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+
+
 class AuthController extends Controller
 {
     // Register user or admin
@@ -73,5 +77,17 @@ class AuthController extends Controller
         $status = Password::sendResetLink($request->only('email'));
 
         return response()->json(['message' => __($status)]);
+    }
+}
+
+class ProductFilterController extends Controller
+{
+    use AuthorizesRequests;
+
+    // Get Filters
+    public function index()
+    {
+        $this->authorize('viewAny', ProductFilter::class);
+        return response()->json(['success' => true, 'data' => ProductFilter::all()], 200);
     }
 }
