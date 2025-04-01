@@ -1,4 +1,4 @@
-#How to Run the Project 
+#How to Run the Project -------------------
 1-first Download the code from github and then extract it.
 2-Then copy the file and paste in under the folder htdocs
 3-Then after that open folder in vs code after that 
