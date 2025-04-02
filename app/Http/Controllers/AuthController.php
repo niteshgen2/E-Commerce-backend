@@ -12,7 +12,6 @@ use Illuminate\Support\Facades\Password;
 use App\Models\ProductFilter;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
-
 class AuthController extends Controller
 {
     // Register user or admin
@@ -21,6 +20,7 @@ class AuthController extends Controller
         $validated = $request->validate([
             'username' => 'required|string|unique:users',
             'password' => 'required|string|min:6',
+            'email' => 'required|string|email|unique:users',
             'first_name' => 'required|string',
             'middle_name' => 'nullable|string',
             'last_name' => 'required|string',
@@ -28,7 +28,7 @@ class AuthController extends Controller
             'birthday' => 'nullable|date',
             'phone_number' => 'nullable|string',
         ]);
-
+        
         $validated['password'] = Hash::make($validated['password']);
         $user = User::create($validated);
         $token = JWTAuth::fromUser($user);
@@ -45,7 +45,7 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $credentials = $request->validate([
-            'username' => 'required|string',
+            'email' => 'required|string',
             'password' => 'required|string',
         ]);
 
@@ -89,5 +89,41 @@ class ProductFilterController extends Controller
     {
         $this->authorize('viewAny', ProductFilter::class);
         return response()->json(['success' => true, 'data' => ProductFilter::all()], 200);
+    }
+}
+
+class UserController extends Controller
+{
+    // Update user
+    public function update(Request $request, $id)
+    {
+        $user = User::findOrFail($id);
+        $validated = $request->validate([
+            'username' => 'sometimes|string|unique:users,username,' . $id,
+            'email' => 'sometimes|string|email|unique:users,email,' . $id,
+            'first_name' => 'sometimes|string',
+            'middle_name' => 'nullable|string',
+            'last_name' => 'sometimes|string',
+            'role' => 'sometimes|in:admin,user',
+            'birthday' => 'nullable|date',
+            'phone_number' => 'nullable|string',
+        ]);
+
+        if ($request->has('password')) {
+            $validated['password'] = Hash::make($request->password);
+        }
+
+        $user->update($validated);
+
+        return response()->json(['message' => 'User updated successfully', 'user' => $user]);
+    }
+
+    // Delete user
+    public function destroy($id)
+    {
+        $user = User::findOrFail($id);
+        $user->delete();
+
+        return response()->json(['message' => 'User deleted successfully']);
     }
 }

@@ -23,8 +23,7 @@ class OrderController extends Controller
             'placed_at' => 'nullable|date', // If placed_at is passed, it must be a valid date
         ]);
      
-      
-
+    
         // Get the authenticated user
         $user = Auth::user();
 
