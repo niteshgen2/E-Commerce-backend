@@ -41,26 +41,34 @@ class AuthController extends Controller
         ], 201);
     }
 
-    // Login
-    public function login(Request $request)
-    {
-        $credentials = $request->validate([
-            'email' => 'required|string',
-            'password' => 'required|string',
-        ]);
+    // Login (Updated for Admin)
+public function login(Request $request)
+{
+    $credentials = $request->validate([
+        'email' => 'required|string',
+        'password' => 'required|string',
+    ]);
 
-        if (!$token = JWTAuth::attempt($credentials)) {
-            return response()->json(['message' => 'Invalid credentials'], 401);
-        }
-
-        $user = Auth::user();
-        return response()->json([
-            'message' => $user->role === 'admin' ? 'Admin login successfully' : 'User login successfully',
-            'access_token' => $token,
-            'token_type' => 'bearer',
-            'expires_in' => JWTAuth::factory()->getTTL() * 60,
-        ]);
+    if (!$token = JWTAuth::attempt($credentials)) {
+        return response()->json(['message' => 'Invalid credentials'], 401);
     }
+
+    $user = Auth::user();
+
+    // Ensure the user logging in is an admin
+    if ($user->role !== 'admin') {
+        return response()->json(['message' => 'Access denied. Only admins can log in here.'], 403);
+    }
+
+    return response()->json([
+        'message' => 'Admin login successful',
+        'access_token' => $token,
+        'token_type' => 'bearer',
+        'expires_in' => JWTAuth::factory()->getTTL() * 60,
+        'user' => $user
+    ]);
+}
+
 
     // Logout
     public function logout()

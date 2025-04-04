@@ -1,0 +1,101 @@
+.w-4 {
+  width: 1rem;
+}
+.h-4 {
+  height: 1rem;
+}
+
+.w-6 {
+  width: 1.5rem;
+}
+.h-6 {
+  height: 1.5rem;
+}
+
+.dropzone {
+  background: white;
+  border-radius: 5px;
+  border: 2px dashed rgb(0, 135, 247);
+  border-image: none;
+  max-width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/*notification css for bell icon*/
+.notification {
+  position: relative;
+  display: inline-block;
+  cursor: pointer;
+}
+.notification .badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background-color: #28a745;
+  color: white;
+  font-size: 12px;
+  padding: 5px 8px;
+  border-radius: 50%;
+}
+
+
+/* Center the login box on the page */
+.login-page {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh; /* Full height */
+  background-color: #f4f6f9; /* Light gray background */
+  margin: 0;
+}
+
+/* Smaller login box */
+.login-box {
+  width: 350px;
+  padding: 20px;
+  background: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+/* Styling for the card */
+.card {
+  border-radius: 10px;
+  border: none;
+}
+
+/* Style the header */
+.card-header {
+  background: #007bff;
+  color: white;
+  font-size: 20px;
+  font-weight: bold;
+  border-radius: 10px 10px 0 0;
+}
+
+/* Form input fields */
+.input-group {
+  margin-bottom: 15px;
+}
+
+.input-group .form-control {
+  border-radius: 5px;
+}
+
+/* Login button */
+.btn-primary {
+  width: 100%;
+  border-radius: 5px;
+}
+
+/* Forgot password link */
+p a {
+  color: #007bff;
+  text-decoration: none;
+}
+
+p a:hover {
+  text-decoration: underline;
+}
