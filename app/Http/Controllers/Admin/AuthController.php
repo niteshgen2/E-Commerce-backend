@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Tymon\JWTAuth\Exceptions\JWTException;
@@ -12,71 +11,136 @@ use App\Models\User;
 
 class AuthController extends Controller
 {
-    // Show the admin login form
-    public function showLoginForm()
+    // ✅ Register Admin or User
+    public function register(Request $request)
     {
-        return view('admin.auth.login'); // Ensure this view exists
+        $request->validate([
+            'username'      => 'required|string|unique:users',
+            'email'         => 'required|email|unique:users',
+            'password'      => 'required|string|min:6',
+            'first_name'    => 'required|string',
+            'middle_name'   => 'nullable|string',
+            'last_name'     => 'required|string',
+            'birthday'      => 'nullable|date',
+            'phone_number'  => 'nullable|string',
+            'role'          => 'required|in:admin,user', // allow only admin or user
+        ]);
+
+        $user = User::create([
+            'username'      => $request->username,
+            'email'         => $request->email,
+            'password'      => Hash::make($request->password),
+            'first_name'    => $request->first_name,
+            'middle_name'   => $request->middle_name,
+            'last_name'     => $request->last_name,
+            'birthday'      => $request->birthday,
+            'phone_number'  => $request->phone_number,
+            'role'          => $request->role,
+        ]);
+
+        try {
+            $token = JWTAuth::fromUser($user);
+            return response()->json([
+                'success' => true,
+                'message' => 'User registered successfully',
+                'token'   => $token,
+                'user'    => $user
+            ], 201);
+        } catch (JWTException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Could not generate token'
+            ], 500);
+        }
     }
 
-    // Admin Login using JWT
+    // ✅ Login Admin or User
     public function login(Request $request)
     {
         $request->validate([
-            'email' => 'required|email',
-            'password' => 'required',
+            'email'     => 'required|email',
+            'password'  => 'required|string',
         ]);
 
-        // Find user by email
-        $user = User::where('email', $request->email)->first();
+        $credentials = $request->only('email', 'password');
 
-        // Validate user and password
-        if (!$user || !Hash::check($request->password, $user->password)) {
-            return back()->withErrors(['email' => 'Invalid credentials']);
-        }
-
-        // Check if user has admin role
-        if ($user->role !== 'admin') {
-            return back()->withErrors(['email' => 'Access denied! Only admins can log in']);
-        }
-
-        // Generate JWT Token
         try {
-            $token = JWTAuth::fromUser($user);
+            if (!$token = JWTAuth::attempt($credentials)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Invalid credentials'
+                ], 401);
+            }
         } catch (JWTException $e) {
-            return back()->withErrors(['email' => 'Could not generate token']);
+            return response()->json([
+                'success' => false,
+                'message' => 'Could not create token'
+            ], 500);
         }
 
-        // Store admin session
-        session(['admin_token' => $token, 'admin_user' => $user]);
+        $user = auth()->user();
 
-        return redirect()->route('admin.dashboard');
+        // If login from Admin panel, you can check role
+        if ($request->is('api/admin/*') && $user->role !== 'admin') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Access denied! Only admins can log in here.'
+            ], 403);
+        }
+
+        return response()->json([
+            'success' => true,
+            'token'   => $token,
+            'user'    => $user
+        ]);
     }
 
-    // Admin Dashboard
-    public function dashboard()
+    // ✅ Get Authenticated User
+    public function me()
     {
-        if (!session()->has('admin_token')) {
-            return redirect()->route('admin.login')->withErrors(['email' => 'Unauthorized access']);
+        try {
+            $user = auth()->user();
+            return response()->json([
+                'success' => true,
+                'user'    => $user
+            ]);
+        } catch (JWTException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Token invalid or expired'
+            ], 401);
         }
-
-        return view('admin.auth.dashboard', ['user' => session('admin_user')]);
     }
 
-    // Admin Logout (Invalidate JWT Token)
-    public function logout(Request $request)
+    // ✅ Logout User (Invalidate Token)
+    public function logout()
+    {
+        try {
+            JWTAuth::invalidate(JWTAuth::getToken());
+            return response()->json([
+                'success' => true,
+                'message' => 'Logged out successfully'
+            ]);
+        } catch (JWTException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to logout'
+            ], 500);
+        }
+    }
+
+    // Show Admin Login Form
+public function showLoginForm()
 {
-    try {
-        $token = $request->bearerToken(); // Get JWT token from header
-        
-        if ($token) {
-            JWTAuth::invalidate($token); // Invalidate the token
-            return redirect()->route('admin.login')->with('success', 'Logged out successfully.');
-        } else {
-            return redirect()->route('admin.login')->with('error', 'No token found.');
-        }
-    } catch (JWTException $e) {
-        return redirect()->route('admin.login')->with('error', 'Failed to logout.');
-    }
+    return view('admin.auth.login'); // Make sure this Blade file exists: resources/views/admin/login.blade.php
+}
+
+public function storeSession(Request $request)
+{
+    $user = (object) $request->user;
+    session(['admin_user' => $user]);
+
+    return response()->json(['message' => 'Session stored']);
 }
 
 }

@@ -16,10 +16,10 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\Admin\AuthController;
 
 
-// Route::post('/register', [AuthController::class, 'register']);
-// Route::middleware('admin.auth')->group(function () {
-//     Route::get('/admin/dashboard', [AuthController::class, 'dashboard']);
-// });
+Route::post('/register', [AuthController::class, 'register']);
+Route::middleware('admin.auth')->group(function () {
+    Route::get('/admin/dashboard', [AuthController::class, 'dashboard']);
+});
 // Route::post('/logout', [AuthController::class, 'logout']);
 // Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
 
