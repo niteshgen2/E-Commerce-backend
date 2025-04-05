@@ -11,7 +11,7 @@ use App\Models\User;
 
 class AuthController extends Controller
 {
-    // ✅ Register Admin or User
+    //Register Admin or User
     public function register(Request $request)
     {
         $request->validate([
@@ -54,7 +54,13 @@ class AuthController extends Controller
         }
     }
 
-    // ✅ Login Admin or User
+    //Show Admin Login Form
+    public function showLoginForm()
+    {
+        return view('admin.auth.login'); // View: resources/views/admin/auth/login.blade.php
+    }
+
+    //Login Admin or User
     public function login(Request $request)
     {
         $request->validate([
@@ -66,81 +72,64 @@ class AuthController extends Controller
 
         try {
             if (!$token = JWTAuth::attempt($credentials)) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Invalid credentials'
-                ], 401);
+                return back()->withErrors(['email' => 'Invalid credentials'])->withInput();
             }
         } catch (JWTException $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Could not create token'
-            ], 500);
+            return back()->withErrors(['email' => 'Could not create token'])->withInput();
         }
 
         $user = auth()->user();
 
-        // If login from Admin panel, you can check role
-        if ($request->is('api/admin/*') && $user->role !== 'admin') {
-            return response()->json([
-                'success' => false,
-                'message' => 'Access denied! Only admins can log in here.'
-            ], 403);
+        // Check if the request is from admin login route
+        if ($request->is('admin/login') && $user->role !== 'admin') {
+            return back()->withErrors(['email' => 'Access denied! Only admins can log in here.'])->withInput();
         }
 
-        return response()->json([
-            'success' => true,
-            'token'   => $token,
-            'user'    => $user
-        ]);
+        // Store the admin user in the session
+        session(['admin_user' => $user]);
+
+        // Redirect to the admin dashboard
+        return redirect()->route('admin.dashboard');
     }
 
-    // ✅ Get Authenticated User
-    public function me()
+    // Admin Dashboard View
+    public function dashboard()
     {
-        try {
-            $user = auth()->user();
-            return response()->json([
-                'success' => true,
-                'user'    => $user
-            ]);
-        } catch (JWTException $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Token invalid or expired'
-            ], 401);
+        // You can add extra checks here if needed
+        if (!session()->has('admin_user')) {
+            return redirect()->route('admin.login')->withErrors(['email' => 'Please login first.']);
         }
+
+        return view('admin.auth.dashboard'); // View: resources/views/admin/auth/dashboard.blade.php
     }
 
-    // ✅ Logout User (Invalidate Token)
+    // Logout Admin (Invalidate Token and Session)
     public function logout()
     {
         try {
             JWTAuth::invalidate(JWTAuth::getToken());
-            return response()->json([
-                'success' => true,
-                'message' => 'Logged out successfully'
-            ]);
+            session()->forget('admin_user');
+            return redirect()->route('admin.login')->with('message', 'Logged out successfully.');
         } catch (JWTException $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to logout'
-            ], 500);
+            return back()->withErrors(['error' => 'Failed to logout']);
         }
     }
 
-    // Show Admin Login Form
-public function showLoginForm()
+    // API method to store session manually if needed
+    public function storeSession(Request $request)
+    {
+        $user = (object) $request->user;
+        session(['admin_user' => $user]);
+
+        return response()->json(['message' => 'Session stored']);
+    }
+
+    public function create()
 {
-    return view('admin.auth.login'); // Make sure this Blade file exists: resources/views/admin/login.blade.php
+    if (!session()->has('admin_user')) {
+        return redirect()->route('admin.login')->withErrors(['email' => 'Please login first.']);
+    }
+    
+    return view('admin.product.add_product'); 
 }
-
-public function storeSession(Request $request)
-{
-    $user = (object) $request->user;
-    session(['admin_user' => $user]);
-
-    return response()->json(['message' => 'Session stored']);
-}
-
 }

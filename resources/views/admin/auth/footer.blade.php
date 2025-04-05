@@ -1,3 +1,5 @@
 <footer class="main-footer text-center">
-    <strong>Copyright &copy; 2025 All rights reserved.</strong>
+    <strong>Copyright © 2025 
+        <a href="#">E-Commerce Admin</a>.
+    </strong> All rights reserved.
 </footer>

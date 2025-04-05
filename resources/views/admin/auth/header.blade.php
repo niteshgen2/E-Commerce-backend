@@ -24,9 +24,9 @@
                 <div class="dropdown-divider"></div>
                 <form action="{{ route('admin.logout') }}" method="POST">
                     @csrf
-                    <button type="submit" class="dropdown-item text-danger">
+                    <!-- <button type="submit" class="dropdown-item text-danger">
                         <i class="fas fa-sign-out-alt mr-2"></i> Logout							
-                    </button>
+                    </button> -->
                 </form>							
             </div>
         </li>

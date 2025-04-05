@@ -17,6 +17,7 @@
 
     <!-- jQuery (If Required) -->
     <script src="{{ asset('plugins/jquery/jquery.min.js') }}"></script>
+
 </head>
 <body>
 
